@@ -235,12 +235,20 @@ class AgreementExtractor:
     
     def extract_roi(self, supply_data, demand_data):
         # Implement the RoI calculation logic based on supply and demand data
-        roi = calculate_roi(supply_data, demand_data)
+        roi = self.calculate_roi(supply_data, demand_data)
         return roi
     
-def calculate_roi(supply_data, demand_data):
-    # Define the RoI calculation logic here
-    pass
+    def calculate_roi(self, supply_data, demand_data):
+        # Placeholder for actual calculation
+        # Example: return the ratio of total demand to total supply as RoI
+        total_supply = sum(float(re.findall(r'\d+', s)[0]) for s in supply_data if re.findall(r'\d+', s))
+        total_demand = sum(float(re.findall(r'\d+', d)[0]) for d in demand_data if re.findall(r'\d+', d))
+        
+        if total_supply == 0:
+            return 0
+        
+        roi = (total_demand / total_supply) * 100  # ROI as a percentage
+        return roi
 
 # Example usage
 file_path = "MoU Aditya Fajar.pdf"
@@ -256,7 +264,7 @@ second_party_pic = extractor.extract_pic_data(text)
 supply_data = extractor.extract_supply_data(text)
 demand_data = extractor.extract_demand_data(text)
 duration = extractor.extract_duration(text)
-roi = extractor.extract_roi(supply_data, demand_data)
+roi = extractor.calculate_roi(supply_data, demand_data)
 
 print("Dates:", dates)
 print("Letter Numbers:", letter_numbers)
