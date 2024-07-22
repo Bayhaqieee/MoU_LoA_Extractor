@@ -18,6 +18,60 @@ class AgreementExtractor:
     
     def extract_entities_with_bert(self, text, entity_type):
         entities = self.ner_pipeline(text)
+        filtered_entities = [entity for entity in entities if entity['entity'] == entity_type]
+        return filtered_entities
+    
+    def post_process_entities(self, entities, text):
+        first_party_data = {'name': '', 'position': '', 'telephone': '', 'email': '', 'address': ''}
+        second_party_data = {'name': '', 'position': '', 'telephone': '', 'email': '', 'address': ''}
+
+        current_party = None
+        for entity in entities:
+            word = text[entity['start']:entity['end']]
+
+            if 'PIHAK PERTAMA' in text[entity['start']-50:entity['end']] or 'FIRST PARTY' in text[entity['start']-50:entity['end']]:
+                current_party = 'first_party'
+            elif 'PIHAK KEDUA' in text[entity['start']-50:entity['end']] or 'SECOND PARTY' in text[entity['start']-50:entity['end']]:
+                current_party = 'second_party'
+
+            if current_party:
+                if entity['entity'] == 'B-PER' or entity['entity'] == 'I-PER':
+                    if current_party == 'first_party':
+                        first_party_data['name'] += ' ' + word
+                    elif current_party == 'second_party':
+                        second_party_data['name'] += ' ' + word
+                elif 'Position' in word or 'Jabatan' in word:
+                    if current_party == 'first_party':
+                        first_party_data['position'] += ' ' + word
+                    elif current_party == 'second_party':
+                        second_party_data['position'] += ' ' + word
+                elif 'Telp' in word or 'fax' in word or 'telephone' in word:
+                    if current_party == 'first_party':
+                        first_party_data['telephone'] += ' ' + word
+                    elif current_party == 'second_party':
+                        second_party_data['telephone'] += ' ' + word
+                elif 'Email' in word:
+                    if current_party == 'first_party':
+                        first_party_data['email'] += ' ' + word
+                    elif current_party == 'second_party':
+                        second_party_data['email'] += ' ' + word
+                elif 'Address' in word or 'Alamat' in word:
+                    if current_party == 'first_party':
+                        first_party_data['address'] += ' ' + word
+                    elif current_party == 'second_party':
+                        second_party_data['address'] += ' ' + word
+
+        # Clean up extra spaces
+        for key in first_party_data:
+            first_party_data[key] = first_party_data[key].strip()
+        for key in second_party_data:
+            second_party_data[key] = second_party_data[key].strip()
+
+        return first_party_data, second_party_data
+
+    
+    def extract_entities_with_bert(self, text, entity_type):
+        entities = self.nlp(text)
         extracted_entities = []
         current_entity = []
         for entity in entities:
@@ -115,40 +169,14 @@ class AgreementExtractor:
     def extract_pic_data(self, text):
         # Preprocess text to remove HTML tags if present
         text = re.sub(r'<b>(.*?)</b>', r'\1', text)
-        
-        
+
         # Extract entities with BERT
-        first_party_data = []
-        second_party_data = []
-        entities = self.nlp(text)
-        for entity in entities:
-            if entity['entity'] == 'PERSON':
-                if 'PIHAK PERTAMA' in entity['word']:
-                    first_party_data.append({'name': entity['word']})
-                elif 'PIHAK KEDUA' in entity['word']:
-                    second_party_data.append({'name': entity['word']})
-        
-        # If no PIC data is found using BERT, use regex patterns
-        if not first_party_data and not second_party_data:
-            pic_pattern_indonesian = r"Nama\s*:\s*(?P<name>[\w\s]+)\s*Jabatan\s*:\s*(?P<position>[\w\s]+)\s*Telp/fax\s*:\s*(?P<telephone>[\w\s]+)\s*Email\s*:\s*(?P<email>[\w\s]+)\s*Alamat\s*:\s*(?P<address>[\w\s]+)"
-            pic_pattern_english = r"Name\s*:\s*(?P<name>[\w\s]+)\s*Position\s*:\s*(?P<position>[\w\s]+)\s*Telp/fax\s*:\s*(?P<telephone>[\w\s]+)\s*Email\s*:\s*(?P<email>[\w\s]+)\s*Address\s*:\s*(?P<address>[\w\s]+)"
-            
-            first_party_match_indonesian = re.search(r'PIHAK PERTAMA.*?' + pic_pattern_indonesian, text, re.DOTALL)
-            first_party_match_english = re.search(r'FIRST PARTY.*?' + pic_pattern_english, text, re.DOTALL)
-            
-            second_party_match_indonesian = re.search(r'PIHAK KEDUA.*?' + pic_pattern_indonesian, text, re.DOTALL)
-            second_party_match_english = re.search(r'SECOND PARTY.*?' + pic_pattern_english, text, re.DOTALL)
-            
-            if first_party_match_indonesian:
-                first_party_data.append(first_party_match_indonesian.groupdict())
-            if first_party_match_english:
-                first_party_data.append(first_party_match_english.groupdict())
-            
-            if second_party_match_indonesian:
-                second_party_data.append(second_party_match_indonesian.groupdict())
-            if second_party_match_english:
-                second_party_data.append(second_party_match_english.groupdict())
-        
+        person_entities = self.extract_entities_with_bert(text, 'B-PER')
+        person_entities += self.extract_entities_with_bert(text, 'I-PER')
+
+        # Post-process entities to structure the data
+        first_party_data, second_party_data = self.post_process_entities(person_entities, text)
+
         return first_party_data, second_party_data
     
     def extract_supply_data(self, text):
@@ -215,7 +243,7 @@ def calculate_roi(supply_data, demand_data):
     pass
 
 # Example usage
-file_path = "STAMP_MoUSawulan (1).pdf"
+file_path = "MoU Aditya Fajar.pdf"
 extractor = AgreementExtractor()
 text = extractor.extract_text_from_pdf(file_path)
 
