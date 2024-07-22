@@ -1,5 +1,6 @@
 import re
 from transformers import BertTokenizer, BertForTokenClassification, pipeline
+import pymupdf
 
 class AgreementExtractor:
     def __init__(self):
@@ -8,13 +9,33 @@ class AgreementExtractor:
         self.model = BertForTokenClassification.from_pretrained(self.model_name)
         self.nlp = pipeline("ner", model=self.model, tokenizer=self.tokenizer)
     
-    def extract_entities_with_bert(self, text, entity_label):
-        ner_results = self.nlp(text)
-        entities = []
-        for entity in ner_results:
-            if entity['entity'] == entity_label:
-                entities.append(entity['word'])
-        return entities
+    def extract_text_from_pdf(self, file_path):
+        doc = pymupdf.open(file_path)
+        text = ""
+        for page in doc:
+            text += page.get_text()
+        return text
+    
+    def extract_entities_with_bert(self, text, entity_type):
+        entities = self.ner_pipeline(text)
+        extracted_entities = []
+        current_entity = []
+        for entity in entities:
+            if entity['entity'] == f'B-{entity_type}':
+                if current_entity:
+                    extracted_entities.append(' '.join(current_entity))
+                current_entity = [entity['word']]
+            elif entity['entity'] == f'I-{entity_type}':
+                current_entity.append(entity['word'].replace('##', ''))
+            else:
+                if current_entity:
+                    extracted_entities.append(' '.join(current_entity))
+                    current_entity = []
+
+        if current_entity:
+            extracted_entities.append(' '.join(current_entity))
+
+        return extracted_entities
     
     def extract_date_of_agreement(self, text):
         date_pattern_first_page = r"On this date ([\d\w\s]+), we the undersigned below:"
@@ -51,38 +72,84 @@ class AgreementExtractor:
         return letter_numbers
     
     def extract_party_names(self, text):
-        first_party_pattern = r"(?P<company_name>[\w\s]+), (?:a|sebuah) (?P<company_desc>[\w\s,]+) (?:established|yang terdaftar) (?:and|sebagai bagian) (?:with having|di bawah) (?:domicile|SK) [\w\s,]+, (?:in this matter|beralamat) (?:represented by|Jalan) [\w\s,]+, (?:in this matter acting|Jabatan) (?:in her|sebagai) capacity (?:as|yang) [\w\s,]+(?:and therefore authorized|untuk dan atas nama) (?:to act for|untuk selanjutnya disebut sebagai) (?:the FIRST PARTY|PIHAK PERTAMA)."
-        second_party_pattern = r"(?P<company_name>[\w\s]+), (?:a|suatu) (?P<company_desc>[\w\s]+) (?:established|berkedudukan) (?:and existing|di) (?:with having|[\w\s,]+) domicile in (?P<address>[\w\s,]+), (?:in this matter|dalam hal ini) (?:represented by|diwakili) (?P<pic>[\w\s]+), (?:in this matter acting|yang dalam hal ini) (?:in her|bertindak dalam kapasitasnya) (?:capacity as|sebagai) (?P<pic_position>[\w\s]+), hereinafter referred to as (?:the SECOND PARTY|PIHAK KEDUA)"
+        # Preprocess text to remove HTML tags if present
+        text = re.sub(r'<b>(.*?)</b>', r'\1', text)
+        
+        # Updated regex patterns to extract company names
+        first_party_pattern_english = r"On this date [\d\w\s,]+, we the\s*undersigned below:\s*1\.\s*(?P<company_name>[\w\s,]+), a"
+        first_party_pattern_indonesian = r"Pada hari ini tanggal [\d\s\w]+, pihak-pihak\s*yang bertanda tangan di bawah ini:\s*1\.\s*(?P<company_name>[\w\s,]+), sebuah"
+        
+        second_party_pattern_company_english = r"2\.\s*(?P<company_name>[\w\s,]+), a"
+        second_party_pattern_company_indonesian = r"2\.\s*(?P<company_name>[\w\s,]+), suatu"
+        
+        second_party_pattern_speaker_english = r"2\.\s*(?P<speaker_name>[\w\s,]+), who is located"
+        second_party_pattern_speaker_indonesian = r"2\.\s*(?P<speaker_name>[\w\s,]+), yang berkedudukan"
         
         first_party = []
         second_party = []
         
-        match_first_party = re.search(first_party_pattern, text)
-        if match_first_party:
-            first_party.append(match_first_party.group('company_name'))
+        match_first_party_english = re.search(first_party_pattern_english, text)
+        match_first_party_indonesian = re.search(first_party_pattern_indonesian, text)
         
-        match_second_party = re.search(second_party_pattern, text)
-        if match_second_party:
-            second_party.append(match_second_party.group('company_name'))
+        if match_first_party_english:
+            first_party.append(match_first_party_english.group('company_name'))
+        if match_first_party_indonesian:
+            first_party.append(match_first_party_indonesian.group('company_name'))
+        
+        match_second_party_company_english = re.search(second_party_pattern_company_english, text)
+        match_second_party_company_indonesian = re.search(second_party_pattern_company_indonesian, text)
+        match_second_party_speaker_english = re.search(second_party_pattern_speaker_english, text)
+        match_second_party_speaker_indonesian = re.search(second_party_pattern_speaker_indonesian, text)
+        
+        if match_second_party_company_english:
+            second_party.append(match_second_party_company_english.group('company_name'))
+        if match_second_party_company_indonesian:
+            second_party.append(match_second_party_company_indonesian.group('company_name'))
+        if match_second_party_speaker_english:
+            second_party.append(match_second_party_speaker_english.group('speaker_name'))
+        if match_second_party_speaker_indonesian:
+            second_party.append(match_second_party_speaker_indonesian.group('speaker_name'))
         
         return first_party, second_party
     
     def extract_pic_data(self, text):
-        pic_pattern_indonesian = r"Nama\s*:\s*(?P<name>[\w\s]+)\s*Jabatan\s*:\s*(?P<position>[\w\s]+)\s*Telp/fax\s*:\s*(?P<telephone>[\w\s]+)\s*Email\s*:\s*(?P<email>[\w\s]+)\s*Alamat\s*:\s*(?P<address>[\w\s]+)"
-        pic_pattern_english = r"Name\s*:\s*(?P<name>[\w\s]+)\s*Position\s*:\s*(?P<position>[\w\s]+)\s*Telp/fax\s*:\s*(?P<telephone>[\w\s]+)\s*Email\s*:\s*(?P<email>[\w\s]+)\s*Address\s*:\s*(?P<address>[\w\s]+)"
+        # Preprocess text to remove HTML tags if present
+        text = re.sub(r'<b>(.*?)</b>', r'\1', text)
         
-        pic_data = self.extract_entities_with_bert(text, 'PERSON')
         
-        if not pic_data:
-            match_indonesian = re.search(pic_pattern_indonesian, text)
-            if match_indonesian:
-                pic_data.append(match_indonesian.groupdict())
+        # Extract entities with BERT
+        first_party_data = []
+        second_party_data = []
+        entities = self.nlp(text)
+        for entity in entities:
+            if entity['entity'] == 'PERSON':
+                if 'PIHAK PERTAMA' in entity['word']:
+                    first_party_data.append({'name': entity['word']})
+                elif 'PIHAK KEDUA' in entity['word']:
+                    second_party_data.append({'name': entity['word']})
+        
+        # If no PIC data is found using BERT, use regex patterns
+        if not first_party_data and not second_party_data:
+            pic_pattern_indonesian = r"Nama\s*:\s*(?P<name>[\w\s]+)\s*Jabatan\s*:\s*(?P<position>[\w\s]+)\s*Telp/fax\s*:\s*(?P<telephone>[\w\s]+)\s*Email\s*:\s*(?P<email>[\w\s]+)\s*Alamat\s*:\s*(?P<address>[\w\s]+)"
+            pic_pattern_english = r"Name\s*:\s*(?P<name>[\w\s]+)\s*Position\s*:\s*(?P<position>[\w\s]+)\s*Telp/fax\s*:\s*(?P<telephone>[\w\s]+)\s*Email\s*:\s*(?P<email>[\w\s]+)\s*Address\s*:\s*(?P<address>[\w\s]+)"
             
-            match_english = re.search(pic_pattern_english, text)
-            if match_english:
-                pic_data.append(match_english.groupdict())
+            first_party_match_indonesian = re.search(r'PIHAK PERTAMA.*?' + pic_pattern_indonesian, text, re.DOTALL)
+            first_party_match_english = re.search(r'FIRST PARTY.*?' + pic_pattern_english, text, re.DOTALL)
+            
+            second_party_match_indonesian = re.search(r'PIHAK KEDUA.*?' + pic_pattern_indonesian, text, re.DOTALL)
+            second_party_match_english = re.search(r'SECOND PARTY.*?' + pic_pattern_english, text, re.DOTALL)
+            
+            if first_party_match_indonesian:
+                first_party_data.append(first_party_match_indonesian.groupdict())
+            if first_party_match_english:
+                first_party_data.append(first_party_match_english.groupdict())
+            
+            if second_party_match_indonesian:
+                second_party_data.append(second_party_match_indonesian.groupdict())
+            if second_party_match_english:
+                second_party_data.append(second_party_match_english.groupdict())
         
-        return pic_data
+        return first_party_data, second_party_data
     
     def extract_supply_data(self, text):
         supply_patterns = [
@@ -148,7 +215,7 @@ def calculate_roi(supply_data, demand_data):
     pass
 
 # Example usage
-file_path = "MoU Aditya Fajar.pdf"
+file_path = "STAMP_MoUSawulan (1).pdf"
 extractor = AgreementExtractor()
 text = extractor.extract_text_from_pdf(file_path)
 
@@ -166,9 +233,9 @@ roi = extractor.extract_roi(supply_data, demand_data)
 print("Dates:", dates)
 print("Letter Numbers:", letter_numbers)
 print("First Party:", first_party)
+print("First Party Data:", first_party_pic)
 print("Second Party:", second_party)
-print("First Party PIC:", first_party_pic)
-print("Second Party PIC:", second_party_pic)
+print("Second Party Data:", second_party_pic)
 print("Supply Data:", supply_data)
 print("Demand Data:", demand_data)
 print("Duration:", duration)
