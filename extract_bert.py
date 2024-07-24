@@ -17,7 +17,7 @@ class AgreementExtractor:
         return text
     
     def extract_entities_with_bert(self, text, entity_type):
-        entities = self.ner_pipeline(text)
+        entities = self.nlp(text)
         filtered_entities = [entity for entity in entities if entity['entity'] == entity_type]
         return filtered_entities
     
@@ -166,18 +166,42 @@ class AgreementExtractor:
         
         return first_party, second_party
     
-    def extract_pic_data(self, text):
-        # Preprocess text to remove HTML tags if present
-        text = re.sub(r'<b>(.*?)</b>', r'\1', text)
+    def extract_text_block(self, text, start_markers, end_marker):
+        """
+        Extracts a block of text between specified start markers and end marker.
+        Handles both Indonesian and English start markers.
+        """
+        for start_marker in start_markers:
+            start_pattern = re.escape(start_marker)
+            end_pattern = re.escape(end_marker)
+            pattern = f"{start_pattern}(.*?){end_pattern}"
 
-        # Extract entities with BERT
-        person_entities = self.extract_entities_with_bert(text, 'B-PER')
-        person_entities += self.extract_entities_with_bert(text, 'I-PER')
+            match = re.search(pattern, text, re.DOTALL)
+            if match:
+                return match.group(1).strip()
+        return None
 
-        # Post-process entities to structure the data
-        first_party_data, second_party_data = self.post_process_entities(person_entities, text)
+    def extract_first_party_pic_block(self, text):
+        start_markers = [
+            "PERTAMA menunjuk:",  # Indonesian start marker
+            "FIRST PARTY designates:"  # English start marker
+        ]
+        end_marker = [
+            "sebagai",
+            "as"
+        ]
+        return self.extract_text_block(text, start_markers, end_marker)
 
-        return first_party_data, second_party_data
+    def extract_second_party_pic_block(self, text):
+        start_markers = [
+            "KEDUA menunjuk:",  # Indonesian start marker
+            "SECOND PARTY designates:"  # English start marker
+        ]
+        end_marker = [
+            "sebagai",
+            "as"
+        ]
+        return self.extract_text_block(text, start_markers, end_marker)
     
     def extract_supply_data(self, text):
         supply_patterns = [
@@ -240,14 +264,13 @@ class AgreementExtractor:
     
     def calculate_roi(self, supply_data, demand_data):
         # Placeholder for actual calculation
-        # Example: return the ratio of total demand to total supply as RoI
         total_supply = sum(float(re.findall(r'\d+', s)[0]) for s in supply_data if re.findall(r'\d+', s))
         total_demand = sum(float(re.findall(r'\d+', d)[0]) for d in demand_data if re.findall(r'\d+', d))
         
         if total_supply == 0:
             return 0
         
-        roi = (total_demand / total_supply) * 100  # ROI as a percentage
+        roi = (total_demand - total_supply / total_supply) * 100  # ROI as a percentage
         return roi
 
 # Example usage
@@ -258,20 +281,21 @@ text = extractor.extract_text_from_pdf(file_path)
 # Extract different entities using BERT and regex
 dates = extractor.extract_date_of_agreement(text)
 letter_numbers = extractor.extract_letter_number(text)
-first_party, second_party = extractor.extract_party_names(text)
-first_party_pic = extractor.extract_pic_data(text)
-second_party_pic = extractor.extract_pic_data(text)
+first_party_names = extractor.extract_party_names(text)[0]
+second_party_names = extractor.extract_party_names(text)[1]
+first_party_pic_data = extractor.extract_first_party_pic_block(text)
+second_party_pic_data = extractor.extract_second_party_pic_block(text)
 supply_data = extractor.extract_supply_data(text)
 demand_data = extractor.extract_demand_data(text)
 duration = extractor.extract_duration(text)
-roi = extractor.calculate_roi(supply_data, demand_data)
+roi = extractor.extract_roi(supply_data, demand_data)
 
 print("Dates:", dates)
 print("Letter Numbers:", letter_numbers)
-print("First Party:", first_party)
-print("First Party Data:", first_party_pic)
-print("Second Party:", second_party)
-print("Second Party Data:", second_party_pic)
+print("First Party:", first_party_names)
+print("First Party Data:", first_party_pic_data)
+print("Second Party:", second_party_names)
+print("Second Party Data:", second_party_pic_data)
 print("Supply Data:", supply_data)
 print("Demand Data:", demand_data)
 print("Duration:", duration)
