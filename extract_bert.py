@@ -166,16 +166,20 @@ class AgreementExtractor:
         
         return first_party, second_party
     
-    def extract_text_block(self, text, start_markers, end_marker):
+    def extract_text_block(self, text, start_markers, end_markers):
         """
-        Extracts a block of text between specified start markers and end marker.
+        Extracts a block of text between specified start markers and end markers.
         Handles both Indonesian and English start markers.
         """
         for start_marker in start_markers:
             start_pattern = re.escape(start_marker)
-            end_pattern = re.escape(end_marker)
-            pattern = f"{start_pattern}(.*?){end_pattern}"
-
+            
+            # Combine end markers into a single regex pattern
+            end_pattern = '|'.join(re.escape(marker) for marker in end_markers)
+            
+            # Construct the full pattern with a non-capturing lookahead for the end markers
+            pattern = rf"{start_pattern}(.*?)(?={end_pattern})"
+            
             match = re.search(pattern, text, re.DOTALL)
             if match:
                 return match.group(1).strip()
@@ -186,22 +190,22 @@ class AgreementExtractor:
             "PERTAMA menunjuk:",  # Indonesian start marker
             "FIRST PARTY designates:"  # English start marker
         ]
-        end_marker = [
-            "sebagai",
-            "as"
+        end_markers = [
+            "dan PIHAK KEDUA",  # Indonesian end marker
+            "and the SECOND PARTY"        # English end marker
         ]
-        return self.extract_text_block(text, start_markers, end_marker)
+        return self.extract_text_block(text, start_markers, end_markers)
 
     def extract_second_party_pic_block(self, text):
         start_markers = [
             "KEDUA menunjuk:",  # Indonesian start marker
             "SECOND PARTY designates:"  # English start marker
         ]
-        end_marker = [
-            "sebagai",
-            "as"
+        end_markers = [
+            "sebagai koordinator",  # Indonesian end marker
+            "as the coordinator"        # English end marker
         ]
-        return self.extract_text_block(text, start_markers, end_marker)
+        return self.extract_text_block(text, start_markers, end_markers)
     
     def extract_supply_data(self, text):
         supply_patterns = [
