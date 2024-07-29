@@ -1,0 +1,6 @@
+transformers
+PyTorch
+torch
+pymupdf
+numpy==1.26.4
+pip install spacy
