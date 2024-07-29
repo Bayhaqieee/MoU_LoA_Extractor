@@ -191,54 +191,52 @@ class AgreementExtractor:
             "menunjuk:",  # Indonesian start marker
             "designates:"  # English start marker
         ]
-        end_marker = "dan PIHAK"  # Marker to end the search
-        for start_marker in start_markers:
-            result = self.extract_text_block(text, start_marker, end_marker)
-            if result:
-                return result
-        return None
+        end_markers = [
+            "dan PIHAK",  # Indonesian end marker
+            "and the"        # English end marker
+        ]
+        return self.extract_text_block(text, start_markers, end_markers)
 
     def extract_second_party_pic_block(self, text):
         start_markers = [
             "KEDUA menunjuk:",  # Indonesian start marker
             "SECOND PARTY designates:"  # English start marker
         ]
-        end_marker = "sebagai koordinator"  # Marker to end the search
-        for start_marker in start_markers:
-            result = self.extract_text_block(text, start_marker, end_marker)
-            if result:
-                return result
-        return None
+        end_markers = [
+            "sebagai koordinator",  # Indonesian end marker
+            "as the coordinator"        # English end marker
+        ]
+        return self.extract_text_block(text, start_markers, end_markers)
 
     def extract_individual_fields(self, text):
         fields = {}
         block_patterns = {
             "Name": {
-                "start": "Name:|Nama:",
-                "end": "Position:|Jabatan:"
+                "start": ["Name :", "Nama :"],
+                "end": ["Position :", "Jabatan :"]
             },
             "Position": {
-                "start": "Position:|Jabatan:",
-                "end": "Telp/fax:|Email:"
+                "start": ["Position :", "Jabatan :"],
+                "end": ["Telp/fax :"]
             },
             "Telp/fax": {
-                "start": "Telp/fax:",
-                "end": "Email:"
+                "start": ["Telp/fax :"],
+                "end": ["Email :"]
             },
             "Email": {
-                "start": "Email:",
-                "end": "Address:|Alamat:"
+                "start": ["Email :"],
+                "end": ["Address :", "Alamat :"]
             },
             "Address": {
-                "start": "Address:|Alamat:",
-                "end": None  # No end marker, extract till the end
+                "start": ["Address :", "Alamat :"],
+                "end": ["sebagai koordinator"]  # No end marker, extract till the end
             }
         }
 
         for field, markers in block_patterns.items():
-            start_marker = markers["start"]
-            end_marker = markers.get("end")
-            fields[field] = self.extract_text_block(text, start_marker, end_marker)
+            start_markers = markers["start"]
+            end_markers = markers.get("end", [None])  # Default to [None] if no end markers
+            fields[field] = self.extract_text_block(text, start_markers, end_markers)
 
         return fields
 
@@ -328,8 +326,10 @@ dates = extractor.extract_date_of_agreement(text)
 letter_numbers = extractor.extract_letter_number(text)
 first_party_names = extractor.extract_party_names(text)[0]
 second_party_names = extractor.extract_party_names(text)[1]
-first_party_pic_data = extractor.extract_first_party_pic_block(text)
-second_party_pic_data = extractor.extract_second_party_pic_block(text)
+first_party_pic_raw_data = extractor.extract_first_party_pic_block(text)
+second_party_pic_raw_data = extractor.extract_second_party_pic_block(text)
+first_party_pic_data = extractor.extract_first_party_details(text)
+second_party_pic_data = extractor.extract_second_party_details(text)
 supply_data = extractor.extract_supply_data(text)
 demand_data = extractor.extract_demand_data(text)
 duration = extractor.extract_duration(text)
@@ -338,8 +338,10 @@ roi = extractor.extract_roi(supply_data, demand_data)
 print("Dates:", dates)
 print("Letter Numbers:", letter_numbers)
 print("First Party:", first_party_names)
+print("First Party Raw Data:", first_party_pic_raw_data)
 print("First Party Data:", first_party_pic_data)
 print("Second Party:", second_party_names)
+print("Second Party Raw Data:", second_party_pic_raw_data)
 print("Second Party Data:", second_party_pic_data)
 print("Supply Data:", supply_data)
 print("Demand Data:", demand_data)
