@@ -133,8 +133,8 @@ class AgreementExtractor:
         first_party_pattern_english = r"On this date [\d\w\s,]+, we the\s*undersigned below:\s*1\.\s*(?P<company_name>[\w\s,]+), a"
         first_party_pattern_indonesian = r"Pada hari ini tanggal [\d\s\w]+, pihak-pihak\s*yang bertanda tangan di bawah ini:\s*1\.\s*(?P<company_name>[\w\s,]+), sebuah"
         
-        second_party_pattern_company_english = r"2\.\s*(?P<company_name>[\w\s,]+), a"
-        second_party_pattern_company_indonesian = r"2\.\s*(?P<company_name>[\w\s,]+), suatu"
+        second_party_pattern_company_english = r"2\.\s*(?P<company_name>[\w\s,]+), a company"
+        second_party_pattern_company_indonesian = r"2\.\s*(?P<company_name>[\w\s,]+), suatu perusahaan"
         
         second_party_pattern_speaker_english = r"2\.\s*(?P<speaker_name>[\w\s,]+), who is located"
         second_party_pattern_speaker_indonesian = r"2\.\s*(?P<speaker_name>[\w\s,]+), yang berkedudukan"
@@ -187,8 +187,8 @@ class AgreementExtractor:
 
     def extract_first_party_pic_block(self, text):
         start_markers = [
-            "PERTAMA menunjuk:",  # Indonesian start marker
-            "FIRST PARTY designates:"  # English start marker
+            "PIHAK PERTAMA menunjuk: ",  # Indonesian start marker
+            "FIRST PARTY designates: "  # English start marker
         ]
         end_markers = [
             "dan PIHAK KEDUA",  # Indonesian end marker
@@ -245,21 +245,15 @@ class AgreementExtractor:
         return demand_data
     
     def extract_duration(self, text):
-        duration_pattern_indonesian = r"Jangka waktu Nota Kesepahaman ini\s*berlaku untuk jangka waktu\s*[\w\s(),]+\s*sejak\s([\d\s\w]+)\s*sampai"
-        duration_pattern_english = r"The term of this Memorandum of\s*Understanding is valid for a period of\s*[\w\s(),]+\s*from\s([\d\w\s]+)\sto"
-        
-        duration = self.extract_entities_with_bert(text, 'DURATION')
-        
-        if not duration:
-            match_indonesian = re.search(duration_pattern_indonesian, text)
-            if match_indonesian:
-                duration.append(match_indonesian.group(1))
-            
-            match_english = re.search(duration_pattern_english, text)
-            if match_english:
-                duration.append(match_english.group(1))
-        
-        return duration
+        start_markers = [
+            "berlaku  untuk  jangka waktu ",  # Indonesian start marker
+            "is valid for a period of "  # English start marker
+        ]
+        end_markers = [
+            "sejak",  # Indonesian end marker
+            "from"        # English end marker
+        ]
+        return self.extract_text_block(text, start_markers, end_markers)
     
     def extract_roi(self, supply_data, demand_data):
         # Implement the RoI calculation logic based on supply and demand data
@@ -278,7 +272,7 @@ class AgreementExtractor:
         return roi
 
 # Example usage
-file_path = "MoU Aditya Fajar.pdf"
+file_path = "MoU Watery Nation.pdf"
 extractor = AgreementExtractor()
 text = extractor.extract_text_from_pdf(file_path)
 
