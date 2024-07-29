@@ -45,7 +45,7 @@ def extract_text_from_pdf(pdf_path, txt_path):
         print(f"Error writing to text file: {e}")
 
 # Example usage
-pdf_path = 'MoU Aditya Fajar.pdf'
+pdf_path = 'MoU Sample(1).pdf'
 txt_path = 'txt_path/Output.txt'
 
 # Extract text from PDF and save to .txt file

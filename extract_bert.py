@@ -115,6 +115,7 @@ class AgreementExtractor:
     
     def extract_letter_number(self, text):
         letter_number_pattern = r"Number:\s*(\S+)\s*|Nomor:\s*(\S+)\s*"
+        letter_number_pattern = r"Number :\s*(\S+)\s*|Nomor :\s*(\S+)\s*"
         
         letter_numbers = self.extract_entities_with_bert(text, 'MISC')
         
@@ -272,7 +273,7 @@ class AgreementExtractor:
         return roi
 
 # Example usage
-file_path = "MoU Watery Nation.pdf"
+file_path = "MoU Sample(1).pdf"
 extractor = AgreementExtractor()
 text = extractor.extract_text_from_pdf(file_path)
 
