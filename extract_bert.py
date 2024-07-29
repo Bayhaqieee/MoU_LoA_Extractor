@@ -188,25 +188,71 @@ class AgreementExtractor:
 
     def extract_first_party_pic_block(self, text):
         start_markers = [
-            "PIHAK PERTAMA menunjuk: ",  # Indonesian start marker
-            "FIRST PARTY designates: "  # English start marker
+            "menunjuk:",  # Indonesian start marker
+            "designates:"  # English start marker
         ]
-        end_markers = [
-            "dan PIHAK KEDUA",  # Indonesian end marker
-            "and the SECOND PARTY"        # English end marker
-        ]
-        return self.extract_text_block(text, start_markers, end_markers)
+        end_marker = "dan PIHAK"  # Marker to end the search
+        for start_marker in start_markers:
+            result = self.extract_text_block(text, start_marker, end_marker)
+            if result:
+                return result
+        return None
 
     def extract_second_party_pic_block(self, text):
         start_markers = [
             "KEDUA menunjuk:",  # Indonesian start marker
             "SECOND PARTY designates:"  # English start marker
         ]
-        end_markers = [
-            "sebagai koordinator",  # Indonesian end marker
-            "as the coordinator"        # English end marker
-        ]
-        return self.extract_text_block(text, start_markers, end_markers)
+        end_marker = "sebagai koordinator"  # Marker to end the search
+        for start_marker in start_markers:
+            result = self.extract_text_block(text, start_marker, end_marker)
+            if result:
+                return result
+        return None
+
+    def extract_individual_fields(self, text):
+        fields = {}
+        block_patterns = {
+            "Name": {
+                "start": "Name:|Nama:",
+                "end": "Position:|Jabatan:"
+            },
+            "Position": {
+                "start": "Position:|Jabatan:",
+                "end": "Telp/fax:|Email:"
+            },
+            "Telp/fax": {
+                "start": "Telp/fax:",
+                "end": "Email:"
+            },
+            "Email": {
+                "start": "Email:",
+                "end": "Address:|Alamat:"
+            },
+            "Address": {
+                "start": "Address:|Alamat:",
+                "end": None  # No end marker, extract till the end
+            }
+        }
+
+        for field, markers in block_patterns.items():
+            start_marker = markers["start"]
+            end_marker = markers.get("end")
+            fields[field] = self.extract_text_block(text, start_marker, end_marker)
+
+        return fields
+
+    def extract_first_party_details(self, text):
+        pic_block = self.extract_first_party_pic_block(text)
+        if pic_block:
+            return self.extract_individual_fields(pic_block)
+        return {}
+
+    def extract_second_party_details(self, text):
+        pic_block = self.extract_second_party_pic_block(text)
+        if pic_block:
+            return self.extract_individual_fields(pic_block)
+        return {}
     
     def extract_supply_data(self, text):
         supply_patterns = [
