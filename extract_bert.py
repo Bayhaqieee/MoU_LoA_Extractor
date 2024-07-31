@@ -18,8 +18,25 @@ class AgreementExtractor:
     
     def extract_entities_with_bert(self, text, entity_type):
         entities = self.nlp(text)
-        filtered_entities = [entity for entity in entities if entity['entity'] == entity_type]
-        return filtered_entities
+        extracted_entities = []
+        current_entity = []
+
+        for entity in entities:
+            if entity['entity'] == f'B-{entity_type}':
+                if current_entity:
+                    extracted_entities.append(' '.join(current_entity))
+                current_entity = [entity['word'].replace('##', '')]
+            elif entity['entity'] == f'I-{entity_type}':
+                current_entity.append(entity['word'].replace('##', ''))
+            else:
+                if current_entity:
+                    extracted_entities.append(' '.join(current_entity))
+                    current_entity = []
+
+        if current_entity:
+            extracted_entities.append(' '.join(current_entity))
+
+        return extracted_entities
     
     def post_process_entities(self, entities, text):
         first_party_data = {'name': '', 'position': '', 'telephone': '', 'email': '', 'address': ''}
@@ -229,14 +246,17 @@ class AgreementExtractor:
             },
             "Address": {
                 "start": ["Address :", "Alamat :"],
-                "end": ["sebagai koordinator"]  # No end marker, extract till the end
+                "end": ["sebagai koordinator", "as the coordinator"]  # Extract till the end
             }
         }
 
         for field, markers in block_patterns.items():
             start_markers = markers["start"]
-            end_markers = markers.get("end", [None])  # Default to [None] if no end markers
-            fields[field] = self.extract_text_block(text, start_markers, end_markers)
+            end_markers = markers.get("end", [None])  # Use [None] if no end markers are provided
+            extracted_text = self.extract_text_block(text, start_markers, end_markers)
+            
+            if extracted_text:
+                fields[field] = extracted_text
 
         return fields
 
