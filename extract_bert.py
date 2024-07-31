@@ -14,6 +14,10 @@ class AgreementExtractor:
         text = ""
         for page in doc:
             text += page.get_text()
+        
+        # Remove tabs from the text
+        text = text.replace("\t", " ")  # Replace tabs with a single space
+        text = re.sub(r"\s+", " ", text)  # Replace multiple spaces with a single space
         return text
     
     def extract_entities_with_bert(self, text, entity_type):
