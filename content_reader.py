@@ -1,5 +1,6 @@
-import fitz  # PyMuPDF
+import pymupdf  # PyMuPDF
 import os
+import re
 
 def extract_text_from_pdf(pdf_path, txt_path):
     """
@@ -20,7 +21,7 @@ def extract_text_from_pdf(pdf_path, txt_path):
     
     # Open the PDF file
     try:
-        pdf_document = fitz.open(pdf_path)
+        pdf_document = pymupdf.open(pdf_path)
     except Exception as e:
         print(f"Error opening PDF file: {e}")
         return
@@ -35,6 +36,10 @@ def extract_text_from_pdf(pdf_path, txt_path):
     
     # Close the PDF document
     pdf_document.close()
+
+    # Remove tabs from the text and replace them with a single space
+    full_text = full_text.replace("\t", " ")
+    full_text = re.sub(r"\s+", " ", full_text)  # Replace multiple spaces with a single space
 
     # Write the extracted text to the .txt file
     try:
