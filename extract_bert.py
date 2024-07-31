@@ -38,84 +38,32 @@ class AgreementExtractor:
 
         return extracted_entities
     
-    def post_process_entities(self, entities, text):
-        first_party_data = {'name': '', 'position': '', 'telephone': '', 'email': '', 'address': ''}
-        second_party_data = {'name': '', 'position': '', 'telephone': '', 'email': '', 'address': ''}
-
-        current_party = None
-        for entity in entities:
-            word = text[entity['start']:entity['end']]
-
-            if 'PIHAK PERTAMA' in text[entity['start']-50:entity['end']] or 'FIRST PARTY' in text[entity['start']-50:entity['end']]:
-                current_party = 'first_party'
-            elif 'PIHAK KEDUA' in text[entity['start']-50:entity['end']] or 'SECOND PARTY' in text[entity['start']-50:entity['end']]:
-                current_party = 'second_party'
-
-            if current_party:
-                if entity['entity'] == 'B-PER' or entity['entity'] == 'I-PER':
-                    if current_party == 'first_party':
-                        first_party_data['name'] += ' ' + word
-                    elif current_party == 'second_party':
-                        second_party_data['name'] += ' ' + word
-                elif 'Position' in word or 'Jabatan' in word:
-                    if current_party == 'first_party':
-                        first_party_data['position'] += ' ' + word
-                    elif current_party == 'second_party':
-                        second_party_data['position'] += ' ' + word
-                elif 'Telp' in word or 'fax' in word or 'telephone' in word:
-                    if current_party == 'first_party':
-                        first_party_data['telephone'] += ' ' + word
-                    elif current_party == 'second_party':
-                        second_party_data['telephone'] += ' ' + word
-                elif 'Email' in word:
-                    if current_party == 'first_party':
-                        first_party_data['email'] += ' ' + word
-                    elif current_party == 'second_party':
-                        second_party_data['email'] += ' ' + word
-                elif 'Address' in word or 'Alamat' in word:
-                    if current_party == 'first_party':
-                        first_party_data['address'] += ' ' + word
-                    elif current_party == 'second_party':
-                        second_party_data['address'] += ' ' + word
-
-        # Clean up extra spaces
-        for key in first_party_data:
-            first_party_data[key] = first_party_data[key].strip()
-        for key in second_party_data:
-            second_party_data[key] = second_party_data[key].strip()
-
-        return first_party_data, second_party_data
-
-    
-    def extract_entities_with_bert(self, text, entity_type):
-        entities = self.nlp(text)
-        extracted_entities = []
-        current_entity = []
-        for entity in entities:
-            if entity['entity'] == f'B-{entity_type}':
-                if current_entity:
-                    extracted_entities.append(' '.join(current_entity))
-                current_entity = [entity['word']]
-            elif entity['entity'] == f'I-{entity_type}':
-                current_entity.append(entity['word'].replace('##', ''))
-            else:
-                if current_entity:
-                    extracted_entities.append(' '.join(current_entity))
-                    current_entity = []
-
-        if current_entity:
-            extracted_entities.append(' '.join(current_entity))
-
-        return extracted_entities
+    def extract_text_block(self, text, start_markers, end_markers):
+        """
+        Extracts a block of text between specified start markers and end markers.
+        Handles both Indonesian and English start markers.
+        """
+        for start_marker in start_markers:
+            start_pattern = re.escape(start_marker)
+            
+            # Combine end markers into a single regex pattern
+            end_pattern = '|'.join(re.escape(marker) for marker in end_markers)
+            
+            # Construct the full pattern with a non-capturing lookahead for the end markers
+            pattern = rf"{start_pattern}(.*?)(?={end_pattern})"
+            
+            match = re.search(pattern, text, re.DOTALL)
+            if match:
+                return match.group(1).strip()
+        return None
     
     def extract_date_of_agreement(self, text):
-        date_pattern_first_page = r"On this date ([\d\w\s]+), we the undersigned below:"
-        date_pattern_chapter_v_english = r"The term of this Memorandum of Understanding is valid for a period of [\w\s(),]+\s*from\s([\d\w\s]+)\sto"
-        date_pattern_chapter_v_indonesian = r"Jangka waktu Nota Kesepahaman ini\s*berlaku untuk jangka waktu\s*[\w\s(),]+\s*sejak\s([\d\s\w]+)\s*sampai"
-        
         dates = self.extract_entities_with_bert(text, 'DATE')
-        
         if not dates:
+            date_pattern_first_page = r"On this date ([\d\w\s]+), we the undersigned below:"
+            date_pattern_chapter_v_english = r"The term of this Memorandum of Understanding is valid for a period of [\w\s(),]+\s*from\s([\d\w\s]+)\sto"
+            date_pattern_chapter_v_indonesian = r"Jangka waktu Nota Kesepahaman ini\s*berlaku untuk jangka waktu\s*[\w\s(),]+\s*sejak\s([\d\s\w]+)\s*sampai"
+            
             match_first_page = re.search(date_pattern_first_page, text)
             if match_first_page:
                 dates.append(match_first_page.group(1))
@@ -183,25 +131,6 @@ class AgreementExtractor:
             second_party.append(match_second_party_speaker_indonesian.group('speaker_name'))
         
         return first_party, second_party
-    
-    def extract_text_block(self, text, start_markers, end_markers):
-        """
-        Extracts a block of text between specified start markers and end markers.
-        Handles both Indonesian and English start markers.
-        """
-        for start_marker in start_markers:
-            start_pattern = re.escape(start_marker)
-            
-            # Combine end markers into a single regex pattern
-            end_pattern = '|'.join(re.escape(marker) for marker in end_markers)
-            
-            # Construct the full pattern with a non-capturing lookahead for the end markers
-            pattern = rf"{start_pattern}(.*?)(?={end_pattern})"
-            
-            match = re.search(pattern, text, re.DOTALL)
-            if match:
-                return match.group(1).strip()
-        return None
 
     def extract_first_party_pic_block(self, text):
         start_markers = [
@@ -246,15 +175,12 @@ class AgreementExtractor:
             },
             "Address": {
                 "start": ["Address :", "Alamat :"],
-                "end": ["sebagai koordinator", "as the coordinator"]  # Extract till the end
+                "end": ["sebagai koordinator", "as the coordinator"]
             }
         }
 
         for field, markers in block_patterns.items():
-            start_markers = markers["start"]
-            end_markers = markers.get("end", [None])  # Use [None] if no end markers are provided
-            extracted_text = self.extract_text_block(text, start_markers, end_markers)
-            
+            extracted_text = self.extract_text_block(text, markers["start"], markers.get("end", [None]))
             if extracted_text:
                 fields[field] = extracted_text
 
@@ -262,15 +188,11 @@ class AgreementExtractor:
 
     def extract_first_party_details(self, text):
         pic_block = self.extract_first_party_pic_block(text)
-        if pic_block:
-            return self.extract_individual_fields(pic_block)
-        return {}
+        return self.extract_individual_fields(pic_block) if pic_block else {}
 
     def extract_second_party_details(self, text):
         pic_block = self.extract_second_party_pic_block(text)
-        if pic_block:
-            return self.extract_individual_fields(pic_block)
-        return {}
+        return self.extract_individual_fields(pic_block) if pic_block else {}
     
     def extract_supply_data(self, text):
         supply_patterns = [
