@@ -198,53 +198,82 @@ class AgreementExtractor:
         pic_block = self.extract_second_party_pic_block(text)
         return self.extract_individual_fields(pic_block) if pic_block else {}
     
+    
+    
     def extract_supply_data(self, text):
-        supply_patterns = [
-            r"FIRST PARTY responsibilities to place a logo placement of SECOND PARTY in official poster event FIRST PARTY, and LPJ internal FIRST PARTY.",
-            r"FIRST PARTY responsibilities to inform all things needed related the partnership with SECOND PARTY.",
-            r"FIRST PARTY responsibilities to keep track of cooperation in order running well and according to the agreement",
-            r"FIRST PARTY responsibilities to obey entirely regulation which has been agreed.",
-            r"FIRST PARTY responsibilities to give a certificate and newsletter report to SECOND PARTY.",
-            r"FIRST PARTY responsibilities to include SECOND PARTY in pre-event article",
-            r"FIRST PARTY responsibilities to conduct selling space of SECOND PARTY product which will be held for [\w\s()]+ minutes.",
-            r"FIRST PARTY responsibilities to fulfill SECOND PARTY Research Survey which in total of [\w\s()]+ Participant.",
-            r"FIRST PARTY responsibilities to conduct Ad-Libs of SECOND PARTY when the event is ongoing.",
-            r"FIRST PARTY responsibilities to play Company Video Promotion of SECOND PARTY when the event is ongoing.",
-            r"FIRST PARTY responsibilities to post 1 \(one\) Story for SECOND PARTY with 20,000\+ Account Follower on Instagram."
+        supply_start_markers_english = [
+            "FIRST PARTY’S RESPONSIBILITY Article 2", 
+            "FIRST PARTY obligations include:"
         ]
-        
-        supply_data = []
-        for pattern in supply_patterns:
-            match = re.search(pattern, text)
-            if match:
-                supply_data.append(match.group())
-        
-        return supply_data
-    
+        supply_end_markers_english = [
+            "SECOND PARTY’S RESPONSIBILITY Article 3", 
+            "ARTICLE", 
+            "SECTION"
+        ]
+
+        supply_start_markers_indonesian = [
+            "KEWAJIBAN PIHAK PERTAMA Pasal 2"
+        ]
+        supply_end_markers_indonesian = [
+            "KEWAJIBAN PIHAK KEDUA Pasal 3", 
+            "PASAL", 
+            "BAGIAN"
+        ]
+
+        supply_type_patterns = {
+            "Logo Placement": r"place a logo placement",
+            "Information Sharing": r"inform all things needed related the partnership",
+            "Cooperation Tracking": r"keep track of cooperation",
+            "Regulation Compliance": r"obey entirely regulation",
+            "Certificate and Newsletter": r"give a certificate and newsletter report",
+            "Pre-Event Article": r"include SECOND PARTY in pre-event article",
+            "Selling Space": r"conduct selling space of SECOND PARTY product",
+            "Research Survey": r"fulfill SECOND PARTY Research Survey",
+            "Ad-Libs": r"conduct Ad-Libs of SECOND PARTY",
+            "Company Video Promotion": r"play Company Video Promotion",
+            "Instagram Story Post": r"post "
+        }
+
+        supply_data_english = self.extract_text_block(text, supply_start_markers_english, supply_end_markers_english, supply_type_patterns)
+        supply_data_indonesian = self.extract_text_block(text, supply_start_markers_indonesian, supply_end_markers_indonesian, supply_type_patterns)
+
+        return {
+            "English": supply_data_english,
+            "Indonesian": supply_data_indonesian
+        }
+
     def extract_demand_data(self, text):
-        # Define demand patterns similar to supply patterns
-        demand_patterns = [
-            # Add regex patterns for demand data here
+        demand_start_markers_english = [
+            "SECOND PARTY responsibilities include:", 
+            "SECOND PARTY obligations include:"
         ]
-        
-        demand_data = []
-        for pattern in demand_patterns:
-            match = re.search(pattern, text)
-            if match:
-                demand_data.append(match.group())
-        
-        return demand_data
-    
-    def extract_duration(self, text):
-        start_markers = [
-            "berlaku  untuk  jangka waktu ",  # Indonesian start marker
-            "is valid for a period of "  # English start marker
+        demand_end_markers_english = [
+            "ARTICLE", 
+            "SECTION"
         ]
-        end_markers = [
-            "sejak",  # Indonesian end marker
-            "from"        # English end marker
+
+        demand_start_markers_indonesian = [
+            "Tanggung jawab PIHAK KEDUA meliputi:", 
+            "Kewajiban PIHAK KEDUA meliputi:"
         ]
-        return self.extract_text_block(text, start_markers, end_markers)
+        demand_end_markers_indonesian = [
+            "PASAL", 
+            "BAGIAN"
+        ]
+
+        demand_type_patterns = {
+            # Define demand type patterns here, similar to supply_type_patterns
+            # Example:
+            # "Payment": r"pay [\w\s]+ amount"
+        }
+
+        demand_data_english = self.extract_block_data(text, demand_start_markers_english, demand_end_markers_english, demand_type_patterns)
+        demand_data_indonesian = self.extract_block_data(text, demand_start_markers_indonesian, demand_end_markers_indonesian, demand_type_patterns)
+
+        return {
+            "English": demand_data_english,
+            "Indonesian": demand_data_indonesian
+        }
     
     def extract_roi(self, supply_data, demand_data):
         # Implement the RoI calculation logic based on supply and demand data
