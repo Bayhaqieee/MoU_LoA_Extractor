@@ -198,7 +198,25 @@ class AgreementExtractor:
         pic_block = self.extract_second_party_pic_block(text)
         return self.extract_individual_fields(pic_block) if pic_block else {}
     
-    
+    def extract_block_data(self, text, start_markers, end_markers, type_patterns):
+        blocks = {}
+        for type_name, type_pattern in type_patterns.items():
+            blocks[type_name] = []
+
+        for start_marker in start_markers:
+            start_pattern = re.escape(start_marker)
+            end_pattern = '|'.join(re.escape(marker) for marker in end_markers)
+            pattern = rf"{start_pattern}(.*?)(?={end_pattern})"
+            matches = re.findall(pattern, text, re.DOTALL)
+
+            if matches:
+                for match in matches:
+                    match = match.strip()
+                    for type_name, type_pattern in type_patterns.items():
+                        if re.search(type_pattern, match):
+                            blocks[type_name].append(match)
+                            break
+        return blocks
     
     def extract_supply_data(self, text):
         supply_start_markers_english = [
@@ -234,8 +252,8 @@ class AgreementExtractor:
             "Instagram Story Post": r"post "
         }
 
-        supply_data_english = self.extract_text_block(text, supply_start_markers_english, supply_end_markers_english, supply_type_patterns)
-        supply_data_indonesian = self.extract_text_block(text, supply_start_markers_indonesian, supply_end_markers_indonesian, supply_type_patterns)
+        supply_data_english = self.extract_block_data(text, supply_start_markers_english, supply_end_markers_english, supply_type_patterns)
+        supply_data_indonesian = self.extract_block_data(text, supply_start_markers_indonesian, supply_end_markers_indonesian, supply_type_patterns)
 
         return {
             "English": supply_data_english,
@@ -274,6 +292,17 @@ class AgreementExtractor:
             "English": demand_data_english,
             "Indonesian": demand_data_indonesian
         }
+    
+    def extract_duration(self, text):
+        start_markers = [
+            "berlaku  untuk  jangka waktu ",  # Indonesian start marker
+            "is valid for a period of "  # English start marker
+        ]
+        end_markers = [
+            "sejak",  # Indonesian end marker
+            "from"        # English end marker
+        ]
+        return self.extract_text_block(text, start_markers, end_markers)
     
     def extract_roi(self, supply_data, demand_data):
         # Implement the RoI calculation logic based on supply and demand data
