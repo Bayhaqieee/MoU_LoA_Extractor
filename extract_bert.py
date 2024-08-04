@@ -218,75 +218,108 @@ class AgreementExtractor:
                             break
         return blocks
     
+    def extract_block_data_deal(self, text, type_patterns):
+        blocks = {}
+        for type_name, markers in type_patterns.items():
+            blocks[type_name] = []
+            start_markers = markers['start']
+            end_markers = markers['end']
+            pattern = markers['pattern']
+
+            for start_marker in start_markers:
+                start_pattern = re.escape(start_marker)
+                end_pattern = '|'.join(re.escape(marker) for marker in end_markers)
+                search_pattern = rf"{start_pattern}(.*?)(?={end_pattern})"
+                matches = re.findall(search_pattern, text, re.DOTALL)
+
+                if matches:
+                    for match in matches:
+                        match = match.strip()
+                        if re.search(pattern, match):
+                            blocks[type_name].append(match)
+                            break
+        return blocks
+    
     def extract_supply_data(self, text):
-        supply_start_markers_english = [
-            "FIRST PARTY’S RESPONSIBILITY Article 2", 
-        ]
-        supply_end_markers_english = [
-            "SECOND PARTY’S RESPONSIBILITY Article 3", 
-        ]
-
-        supply_start_markers_indonesian = [
-            "KEWAJIBAN PIHAK PERTAMA Pasal 2"
-        ]
-        supply_end_markers_indonesian = [
-            "KEWAJIBAN PIHAK KEDUA Pasal 3", 
-        ]
-
         supply_type_patterns = {
-            "Logo Placement": r"place a logo placement",
-            "Information Sharing": r"inform all things needed related the partnership",
-            "Cooperation Tracking": r"keep track of cooperation",
-            "Regulation Compliance": r"obey entirely regulation",
-            "Certificate and Newsletter": r"give a certificate and newsletter report",
-            "Pre-Event Article": r"include SECOND PARTY in pre-event article",
-            "Selling Space": r"conduct selling space of SECOND PARTY product",
-            "Research Survey": r"fulfill SECOND PARTY Research Survey",
-            "Ad-Libs": r"conduct Ad-Libs of SECOND PARTY",
-            "Company Video Promotion": r"play Company Video Promotion",
-            "Instagram Story Post": r"post "
+            "Logo Placement": {
+                "start": ["FIRST PARTY responsibilities to place a logo placement of SECOND PARTY"],
+                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
+                "pattern": r"place a logo placement"
+            },
+            "Information Sharing": {
+                "start": ["FIRST PARTY responsibilities to inform all things needed related the partnership"],
+                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
+                "pattern": r"inform all things needed related the partnership"
+            },
+            "Cooperation Tracking": {
+                "start": ["FIRST PARTY responsibilities to keep track of cooperation"],
+                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
+                "pattern": r"keep track of cooperation"
+            },
+            "Regulation Compliance": {
+                "start": ["FIRST PARTY responsibilities to obey entirely regulation"],
+                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
+                "pattern": r"obey entirely regulation"
+            },
+            "Certificate and Newsletter": {
+                "start": ["FIRST PARTY responsibilities to give a certificate and newsletter report"],
+                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
+                "pattern": r"give a certificate and newsletter report"
+            },
+            "Pre-Event Article": {
+                "start": ["FIRST PARTY responsibilities to include SECOND PARTY in pre-event article"],
+                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
+                "pattern": r"include SECOND PARTY in pre-event article"
+            },
+            "Selling Space": {
+                "start": ["FIRST PARTY responsibilities to conduct selling space of SECOND PARTY product"],
+                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
+                "pattern": r"conduct selling space of SECOND PARTY product"
+            },
+            "Research Survey": {
+                "start": ["FIRST PARTY responsibilities to fulfill SECOND PARTY Research Survey"],
+                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
+                "pattern": r"fulfill SECOND PARTY Research Survey"
+            },
+            "Ad-Libs": {
+                "start": ["FIRST PARTY responsibilities to conduct Ad-Libs of SECOND PARTY"],
+                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
+                "pattern": r"conduct Ad-Libs of SECOND PARTY"
+            },
+            "Company Video Promotion": {
+                "start": ["FIRST PARTY responsibilities to play Company Video Promotion"],
+                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
+                "pattern": r"play Company Video Promotion"
+            },
+            "Instagram Story Post": {
+                "start": ["FIRST PARTY responsibilities to post 1 \\(one\\) Story for SECOND PARTY with 20,000\\+ Account Follower on Instagram"],
+                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
+                "pattern": r"post 1 \\(one\\) Story for SECOND PARTY with 20,000\\+ Account Follower on Instagram"
+            }
         }
 
-        supply_data_english = self.extract_block_data(text, supply_start_markers_english, supply_end_markers_english, supply_type_patterns)
-        supply_data_indonesian = self.extract_block_data(text, supply_start_markers_indonesian, supply_end_markers_indonesian, supply_type_patterns)
-
-        return {
-            "English": supply_data_english,
-            "Indonesian": supply_data_indonesian
-        }
+        return self.extract_block_data_deal(text, supply_type_patterns)
 
     def extract_demand_data(self, text):
-        demand_start_markers_english = [
-            "SECOND PARTY responsibilities include:", 
-            "SECOND PARTY obligations include:"
-        ]
-        demand_end_markers_english = [
-            "ARTICLE", 
-            "SECTION"
-        ]
-
-        demand_start_markers_indonesian = [
-            "Tanggung jawab PIHAK KEDUA meliputi:", 
-            "Kewajiban PIHAK KEDUA meliputi:"
-        ]
-        demand_end_markers_indonesian = [
-            "PASAL", 
-            "BAGIAN"
-        ]
-
         demand_type_patterns = {
             # Define demand type patterns here, similar to supply_type_patterns
             # Example:
-            # "Payment": r"pay [\w\s]+ amount"
+            # "Payment": {
+            #     "start": ["SECOND PARTY responsibilities to pay"],
+            #     "end": ["ARTICLE", "SECTION"],
+            #     "pattern": r"pay [\w\s]+ amount"
+            # }
         }
 
-        demand_data_english = self.extract_block_data(text, demand_start_markers_english, demand_end_markers_english, demand_type_patterns)
-        demand_data_indonesian = self.extract_block_data(text, demand_start_markers_indonesian, demand_end_markers_indonesian, demand_type_patterns)
+        return self.extract_block_data_deal(text, demand_type_patterns)
 
-        return {
-            "English": demand_data_english,
-            "Indonesian": demand_data_indonesian
-        }
+    def detect_deal(self, text, type_patterns):
+        for type_name, markers in type_patterns.items():
+            pattern = markers['pattern']
+            if re.search(pattern, text):
+                return True
+        return False
     
     def extract_duration(self, text):
         start_markers = [
