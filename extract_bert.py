@@ -221,7 +221,7 @@ class AgreementExtractor:
     def extract_block_data_deal(self, text, type_patterns):
         blocks = {}
         for type_name, markers in type_patterns.items():
-            blocks[type_name] = []
+            blocks[type_name] = {'detected': False, 'matches': []}
             start_markers = markers['start']
             end_markers = markers['end']
             pattern = markers['pattern']
@@ -236,66 +236,67 @@ class AgreementExtractor:
                     for match in matches:
                         match = match.strip()
                         if re.search(pattern, match):
-                            blocks[type_name].append(match)
+                            blocks[type_name]['matches'].append(match)
+                            blocks[type_name]['detected'] = True
                             break
         return blocks
-    
+
     def extract_supply_data(self, text):
         supply_type_patterns = {
             "Logo Placement": {
-                "start": ["FIRST PARTY responsibilities to place a logo placement of SECOND PARTY"],
-                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
-                "pattern": r"place a logo placement"
+                "start": ["FIRST PARTY responsibilities to place a logo placement of SECOND PARTY", "PIHAK PERTAMA bertanggung jawab untuk memasang logo PIHAK KEDUA"],
+                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
+                "pattern": r"place a logo placement|memasang logo"
             },
             "Information Sharing": {
-                "start": ["FIRST PARTY responsibilities to inform all things needed related the partnership"],
-                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
-                "pattern": r"inform all things needed related the partnership"
+                "start": ["FIRST PARTY responsibilities to inform all things needed related the partnership", "PIHAK PERTAMA bertanggung jawab untuk menginformasikan segala hal yang diperlukan terkait kemitraan"],
+                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
+                "pattern": r"inform all things needed related the partnership|menginformasikan segala hal yang diperlukan terkait kemitraan"
             },
             "Cooperation Tracking": {
-                "start": ["FIRST PARTY responsibilities to keep track of cooperation"],
-                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
-                "pattern": r"keep track of cooperation"
+                "start": ["FIRST PARTY responsibilities to keep track of cooperation", "PIHAK PERTAMA bertanggung jawab untuk memantau kerja sama"],
+                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
+                "pattern": r"keep track of cooperation|memantau kerja sama"
             },
             "Regulation Compliance": {
-                "start": ["FIRST PARTY responsibilities to obey entirely regulation"],
-                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
-                "pattern": r"obey entirely regulation"
+                "start": ["FIRST PARTY responsibilities to obey entirely regulation", "PIHAK PERTAMA bertanggung jawab untuk mematuhi sepenuhnya peraturan"],
+                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
+                "pattern": r"obey entirely regulation|mematuhi sepenuhnya peraturan"
             },
             "Certificate and Newsletter": {
-                "start": ["FIRST PARTY responsibilities to give a certificate and newsletter report"],
-                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
-                "pattern": r"give a certificate and newsletter report"
+                "start": ["FIRST PARTY responsibilities to give a certificate and newsletter report", "PIHAK PERTAMA bertanggung jawab untuk memberikan sertifikat dan laporan buletin"],
+                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
+                "pattern": r"give a certificate and newsletter report|memberikan sertifikat dan laporan buletin"
             },
             "Pre-Event Article": {
-                "start": ["FIRST PARTY responsibilities to include SECOND PARTY in pre-event article"],
-                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
-                "pattern": r"include SECOND PARTY in pre-event article"
+                "start": ["FIRST PARTY responsibilities to include SECOND PARTY in pre-event article", "PIHAK PERTAMA bertanggung jawab untuk menyertakan PIHAK KEDUA dalam artikel pra-acara"],
+                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
+                "pattern": r"include SECOND PARTY in pre-event article|menyertakan PIHAK KEDUA dalam artikel pra-acara"
             },
             "Selling Space": {
-                "start": ["FIRST PARTY responsibilities to conduct selling space of SECOND PARTY product"],
-                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
-                "pattern": r"conduct selling space of SECOND PARTY product"
+                "start": ["FIRST PARTY responsibilities to conduct selling space of SECOND PARTY product", "PIHAK PERTAMA bertanggung jawab untuk menyediakan ruang penjualan produk PIHAK KEDUA"],
+                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
+                "pattern": r"conduct selling space of SECOND PARTY product|menyediakan ruang penjualan produk PIHAK KEDUA"
             },
             "Research Survey": {
-                "start": ["FIRST PARTY responsibilities to fulfill SECOND PARTY Research Survey"],
-                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
-                "pattern": r"fulfill SECOND PARTY Research Survey"
+                "start": ["FIRST PARTY responsibilities to fulfill SECOND PARTY Research Survey", "PIHAK PERTAMA bertanggung jawab untuk melaksanakan survei riset PIHAK KEDUA"],
+                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
+                "pattern": r"fulfill SECOND PARTY Research Survey|melaksanakan survei riset PIHAK KEDUA"
             },
             "Ad-Libs": {
-                "start": ["FIRST PARTY responsibilities to conduct Ad-Libs of SECOND PARTY"],
-                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
-                "pattern": r"conduct Ad-Libs of SECOND PARTY"
+                "start": ["FIRST PARTY responsibilities to conduct Ad-Libs of SECOND PARTY", "PIHAK PERTAMA bertanggung jawab untuk melaksanakan Ad-Libs PIHAK KEDUA"],
+                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
+                "pattern": r"conduct Ad-Libs of SECOND PARTY|melaksanakan Ad-Libs PIHAK KEDUA"
             },
             "Company Video Promotion": {
-                "start": ["FIRST PARTY responsibilities to play Company Video Promotion"],
-                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
-                "pattern": r"play Company Video Promotion"
+                "start": ["FIRST PARTY responsibilities to play Company Video Promotion", "PIHAK PERTAMA bertanggung jawab untuk memutar Video Promosi Perusahaan PIHAK KEDUA"],
+                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
+                "pattern": r"play Company Video Promotion|memutar Video Promosi Perusahaan"
             },
             "Instagram Story Post": {
-                "start": ["FIRST PARTY responsibilities to post 1 \\(one\\) Story for SECOND PARTY with 20,000\\+ Account Follower on Instagram"],
-                "end": ["SECOND PARTY responsibilities", "ARTICLE", "SECTION"],
-                "pattern": r"post 1 \\(one\\) Story for SECOND PARTY with 20,000\\+ Account Follower on Instagram"
+                "start": ["FIRST PARTY responsibilities to post 1 \\(one\\) Story for SECOND PARTY with 20,000\\+ Account Follower on Instagram", "PIHAK PERTAMA bertanggung jawab untuk memposting 1 \\(satu\\) Cerita untuk PIHAK KEDUA dengan 20.000\\+ Pengikut di Instagram"],
+                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
+                "pattern": r"post 1 \\(one\\) Story for SECOND PARTY with 20,000\\+ Account Follower on Instagram|memposting 1 \\(satu\\) Cerita untuk PIHAK KEDUA dengan 20.000\\+ Pengikut di Instagram"
             }
         }
 
@@ -305,11 +306,11 @@ class AgreementExtractor:
         demand_type_patterns = {
             # Define demand type patterns here, similar to supply_type_patterns
             # Example:
-            # "Payment": {
-            #     "start": ["SECOND PARTY responsibilities to pay"],
-            #     "end": ["ARTICLE", "SECTION"],
-            #     "pattern": r"pay [\w\s]+ amount"
-            # }
+            "Payment": {
+                "start": ["SECOND PARTY responsibilities to pay", "PIHAK KEDUA bertanggung jawab untuk membayar"],
+                "end": ["FIRST PARTY responsibilities", "TANGGUNG JAWAB PIHAK PERTAMA", "ARTICLE", "PASAL", "SECTION"],
+                "pattern": r"pay [\w\s]+ amount|membayar sejumlah"
+            }
         }
 
         return self.extract_block_data_deal(text, demand_type_patterns)
