@@ -221,12 +221,9 @@ class AgreementExtractor:
     def extract_supply_data(self, text):
         supply_start_markers_english = [
             "FIRST PARTY’S RESPONSIBILITY Article 2", 
-            "FIRST PARTY obligations include:"
         ]
         supply_end_markers_english = [
             "SECOND PARTY’S RESPONSIBILITY Article 3", 
-            "ARTICLE", 
-            "SECTION"
         ]
 
         supply_start_markers_indonesian = [
@@ -234,8 +231,6 @@ class AgreementExtractor:
         ]
         supply_end_markers_indonesian = [
             "KEWAJIBAN PIHAK KEDUA Pasal 3", 
-            "PASAL", 
-            "BAGIAN"
         ]
 
         supply_type_patterns = {
