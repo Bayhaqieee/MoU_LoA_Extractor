@@ -236,7 +236,8 @@ class AgreementExtractor:
                     for match in matches:
                         match = match.strip()
                         if re.search(pattern, match):
-                            blocks[type_name]['matches'].append(match)
+                            merged_text = f"{start_marker}{match}{next((end_marker for end_marker in end_markers if re.search(re.escape(end_marker), text)), '')}"
+                            blocks[type_name]['matches'].append(merged_text)
                             blocks[type_name]['detected'] = True
                             break
         return blocks
@@ -244,14 +245,14 @@ class AgreementExtractor:
     def extract_supply_data(self, text):
         supply_type_patterns = {
             "Logo Placement": {
-                "start": ["FIRST PARTY responsibilities to place a logo placement of SECOND PARTY", "PIHAK PERTAMA bertanggung jawab untuk memasang logo PIHAK KEDUA"],
-                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
-                "pattern": r"place a logo placement|memasang logo"
+                "start": ["FIRST PARTY responsibilities to place", "PIHAK  PERTAMA  berkewajiban  untuk mencantumkan"],
+                "end": ["LPJ internal FIRST PARTY", "LPJ internal PIHAK PERTAMA"],
+                "pattern": r"logo|logo"
             },
             "Information Sharing": {
-                "start": ["FIRST PARTY responsibilities to inform all things needed related the partnership", "PIHAK PERTAMA bertanggung jawab untuk menginformasikan segala hal yang diperlukan terkait kemitraan"],
-                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
-                "pattern": r"inform all things needed related the partnership|menginformasikan segala hal yang diperlukan terkait kemitraan"
+                "start": ["FIRST PARTY responsibilities to", "PIHAK  PERTAMA  berkewajiban  untuk"],
+                "end": ["partnership with SECOND PARTY", "kerja sama dengan PIHAK KEDUA"],
+                "pattern": r"inform all things|menginformasikan"
             },
             "Cooperation Tracking": {
                 "start": ["FIRST PARTY responsibilities to keep track of cooperation", "PIHAK PERTAMA bertanggung jawab untuk memantau kerja sama"],
