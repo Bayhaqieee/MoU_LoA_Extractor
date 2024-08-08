@@ -251,18 +251,18 @@ class AgreementExtractor:
             },
             "Information Sharing": {
                 "start": ["FIRST PARTY responsibilities to inform all things", "PIHAK PERTAMA berkewajiban untuk menginformasikan segala hal"],
-                "end": ["the partnership with SECOND PARTY", "kerja sama dengan PIHAK KEDUA"],
+                "end": ["the partnership with SECOND PARTY", "sama dengan PIHAK KEDUA"],
                 "pattern": r"mengenai|related"
             },
             "Pre-Event Article": {
-                "start": ["FIRST PARTY responsibilities to including", "PIHAK PERTAMA berkewajiban untuk mengadakan"],
-                "end": ["in pre- event article", "dalam pre-event artikel"],
-                "pattern": r"pre-event article|pre-event artikel"
+                "start": ["FIRST PARTY responsibilities to including SECOND", "PIHAK PERTAMA berkewajiban untuk mencantumkan PIHAK KEDUA"],
+                "end": ["pre- event article", "pre-event artikel"],
+                "pattern": r"article|artikel"
             },
             "Selling Space": {
-                "start": ["FIRST PARTY responsibilities to conduct", "PIHAK  PERTAMA  berkewajiban  untuk mengadakan"],
-                "end": ["2 - 3 minutes", "2 - 3 Menit"],
-                "pattern": r"conduct selling space of|selling space produk"
+                "start": ["FIRST PARTY responsibilities to conduct", "PIHAK PERTAMA berkewajiban untuk mengadakan"],
+                "end": ["held for 2 – 3 minutes", "selama 2 - 3 Menit"],
+                "pattern": r"selling space|selling space"
             },
             "Cooperation Tracking": {
                 "start": ["FIRST PARTY responsibilities to keep track of cooperation", "PIHAK PERTAMA bertanggung jawab untuk memantau kerja sama"],
@@ -275,9 +275,19 @@ class AgreementExtractor:
                 "pattern": r"obey entirely regulation|mematuhi sepenuhnya peraturan"
             },
             "Certificate and Newsletter": {
-                "start": ["FIRST PARTY responsibilities to give a certificate and newsletter report", "PIHAK PERTAMA bertanggung jawab untuk memberikan sertifikat dan laporan buletin"],
-                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
-                "pattern": r"give a certificate and newsletter report|memberikan sertifikat dan laporan buletin"
+                "start": ["FIRST  PARTY  responsibilities  to  give an", "PIHAK  PERTAMA  berkewajiban  untuk memberikan"],
+                "end": ["to SECOND PARTY", "kepada PIHAK KEDUA"],
+                "pattern": r"certificate|sertifikat"
+            },
+            "Session Stakeholder": {
+                "start": ["FIRST PARTY will conduct a session", "PIHAK  PERTAMA  akan  melaksanakan"],
+                "end": ["2024", "2025", "2026", "2027", "2028", "2029", "2030", "2022", "2023"],
+                "pattern": r"session|sesi"
+            },
+            "Data Requirement": {
+                "start": ["FIRST PARTY will follow up regarding the  information needed (e.g photos)", "PIHAK PERTAMA akan menindaklanjuti mengenai informasi yang dibutuhkan (misalnya foto)"],
+                "end": ["Rich Project"],
+                "pattern": r"information|informasi"
             },
             "Research Survey": {
                 "start": ["FIRST PARTY responsibilities to fulfill SECOND PARTY Research Survey", "PIHAK PERTAMA bertanggung jawab untuk melaksanakan survei riset PIHAK KEDUA"],
