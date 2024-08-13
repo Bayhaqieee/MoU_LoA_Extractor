@@ -1,0 +1,15 @@
+            "Cooperation Tracking": {
+                "start": ["FIRST PARTY responsibilities to keep track of cooperation", "PIHAK PERTAMA bertanggung jawab untuk memantau kerja sama"],
+                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
+                "pattern": r"keep track of cooperation|memantau kerja sama"
+            },
+            "Regulation Compliance": {
+                "start": ["FIRST PARTY responsibilities to obey entirely regulation", "PIHAK PERTAMA bertanggung jawab untuk mematuhi sepenuhnya peraturan"],
+                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
+                "pattern": r"obey entirely regulation|mematuhi sepenuhnya peraturan"
+            },
+            "Session Stakeholder": {
+                "start": ["FIRST PARTY will conduct a session", "PIHAK  PERTAMA  akan  melaksanakan"],
+                "end": ["2024", "2025", "2026", "2027", "2028", "2029", "2030", "2022", "2023"],
+                "pattern": r"session|sesi"
+            },

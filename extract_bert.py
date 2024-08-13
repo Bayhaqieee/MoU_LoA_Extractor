@@ -245,52 +245,55 @@ class AgreementExtractor:
     def extract_supply_data(self, text):
         supply_type_patterns = {
             "Logo Placement": {
-                "start": ["FIRST PARTY responsibilities to place", "PIHAK  PERTAMA  berkewajiban  untuk mencantumkan"],
-                "end": ["LPJ internal FIRST PARTY", "LPJ internal PIHAK PERTAMA"],
+                "start": ["FIRST PARTY responsibilities to place ", "PIHAK  PERTAMA  berkewajiban  untuk mencantumkan "],
+                "end": [" LPJ internal FIRST PARTY", " LPJ internal PIHAK PERTAMA"],
                 "pattern": r"logo|logo"
             },
             "Information Sharing": {
-                "start": ["FIRST PARTY responsibilities to inform all things", "PIHAK PERTAMA berkewajiban untuk menginformasikan segala hal"],
-                "end": ["the partnership with SECOND PARTY", "sama dengan PIHAK KEDUA"],
+                "start": ["FIRST PARTY responsibilities to inform all things ", "PIHAK PERTAMA berkewajiban untuk menginformasikan segala hal "],
+                "end": [" the partnership with SECOND PARTY", " sama dengan PIHAK KEDUA"],
                 "pattern": r"mengenai|related"
             },
             "Pre-Event Article": {
-                "start": ["FIRST PARTY responsibilities to including SECOND", "PIHAK PERTAMA berkewajiban untuk mencantumkan PIHAK KEDUA"],
-                "end": ["pre- event article", "pre-event artikel"],
-                "pattern": r"article|artikel"
+                "start": ["FIRST PARTY responsibilities to including ", "PIHAK PERTAMA berkewajiban untuk mencantumkan PIHAK KEDUA "],
+                "end": [" article", " artikel"],
+                "pattern": r"pre|pre"
             },
             "Selling Space": {
-                "start": ["FIRST PARTY responsibilities to conduct", "PIHAK PERTAMA berkewajiban untuk mengadakan"],
-                "end": ["held for 2 – 3 minutes", "selama 2 - 3 Menit"],
+                "start": ["FIRST PARTY responsibilities to conduct ", "PIHAK PERTAMA berkewajiban untuk mengadakan "],
+                "end": [" held for 2 – 3 minutes", " selama 2 - 3 Menit"],
                 "pattern": r"selling space|selling space"
             },
-            "Cooperation Tracking": {
-                "start": ["FIRST PARTY responsibilities to keep track of cooperation", "PIHAK PERTAMA bertanggung jawab untuk memantau kerja sama"],
-                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
-                "pattern": r"keep track of cooperation|memantau kerja sama"
-            },
-            "Regulation Compliance": {
-                "start": ["FIRST PARTY responsibilities to obey entirely regulation", "PIHAK PERTAMA bertanggung jawab untuk mematuhi sepenuhnya peraturan"],
-                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
-                "pattern": r"obey entirely regulation|mematuhi sepenuhnya peraturan"
-            },
             "Certificate and Newsletter": {
-                "start": ["FIRST  PARTY  responsibilities  to  give an", "PIHAK  PERTAMA  berkewajiban  untuk memberikan"],
-                "end": ["to SECOND PARTY", "kepada PIHAK KEDUA"],
+                "start": ["FIRST PARTY responsibilities to give an ", "PIHAK PERTAMA berkewajiban untuk memberikan "],
+                "end": [" to SECOND PARTY", " kepada PIHAK KEDUA"],
                 "pattern": r"certificate|sertifikat"
             },
+            # Need to be Improved
             "Session Stakeholder": {
-                "start": ["FIRST PARTY will conduct a session", "PIHAK  PERTAMA  akan  melaksanakan"],
-                "end": ["2024", "2025", "2026", "2027", "2028", "2029", "2030", "2022", "2023"],
+                "start": ["FIRST PARTY will conduct a ", "PIHAK  PERTAMA  akan  melaksanakan "],
+                "end": [" 2024", " 2025", " 2026", " 2027", " 2028", " 2029", " 2030", " 2022", " 2023"],
                 "pattern": r"session|sesi"
             },
-            "Data Requirement": {
-                "start": ["FIRST PARTY will follow up regarding the  information needed (e.g photos)", "PIHAK PERTAMA akan menindaklanjuti mengenai informasi yang dibutuhkan (misalnya foto)"],
-                "end": ["Rich Project"],
+            # Need to be Improved
+            "Stakeholder Exposure": {
+                "start": ["FIRST PARTY will follow up regarding the information needed (e.g. photos) ", "PIHAK PERTAMA akan menindaklanjuti mengenai informasi yang dibutuhkan (misalnya foto) "],
+                "end": [" Rich Project"," Rich Project"],
                 "pattern": r"information|informasi"
             },
+            # Need to be Improved
+            "Data Acquiring": {
+                "start": ["FIRST PARTY will acquire data related ", "PIHAK PERTAMA akan memberikan data terkait "],
+                "end": [" investation data"," investasi peserta"],
+                "pattern": r"data|data"
+            },
+            "Regulation Compliance": {
+                "start": ["Normal Cancellation ", "Pembatalan secara normal "],
+                "end": [" ini disetujui", " is approved"],
+                "pattern": r"cancellation|pembatalan"
+            },
             "Research Survey": {
-                "start": ["FIRST PARTY responsibilities to fulfill SECOND PARTY Research Survey", "PIHAK PERTAMA bertanggung jawab untuk melaksanakan survei riset PIHAK KEDUA"],
+                "start": ["FIRST PARTY responsibilities to fulfill SECOND PARTY Research Survey ", "PIHAK PERTAMA bertanggung jawab untuk melaksanakan survei riset PIHAK KEDUA "],
                 "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
                 "pattern": r"fulfill SECOND PARTY Research Survey|melaksanakan survei riset PIHAK KEDUA"
             },
