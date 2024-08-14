@@ -271,14 +271,14 @@ class AgreementExtractor:
             },
             # Need to be Improved
             "Session Stakeholder": {
-                "start": ["FIRST PARTY will conduct a ", "PIHAK  PERTAMA  akan  melaksanakan "],
-                "end": [" 2024", " 2025", " 2026", " 2027", " 2028", " 2029", " 2030", " 2022", " 2023"],
+                "start": ["FIRST PARTY will conduct a  ", "PIHAK  PERTAMA  akan  melaksanakan "],
+                "end": [" 20 September 2024", " 20th of September 2024"],
                 "pattern": r"session|sesi"
             },
             # Need to be Improved
             "Stakeholder Exposure": {
-                "start": ["FIRST PARTY will follow up regarding the information needed (e.g. photos) ", "PIHAK PERTAMA akan menindaklanjuti mengenai informasi yang dibutuhkan (misalnya foto) "],
-                "end": [" Rich Project"," Rich Project"],
+                "start": ["FIRST PARTY will follow up regarding the information needed (e.g. photos) and ", "PIHAK PERTAMA akan menindaklanjuti mengenai informasi yang dibutuhkan (misalnya foto) dan "],
+                "end": [" Get Rich Project"," Get Rich Project"],
                 "pattern": r"information|informasi"
             },
             # Need to be Improved
@@ -289,7 +289,7 @@ class AgreementExtractor:
             },
             "Regulation Compliance": {
                 "start": ["Normal Cancellation ", "Pembatalan secara normal "],
-                "end": [" ini disetujui", " is approved"],
+                "end": [" is approved", " ini disetujui"],
                 "pattern": r"cancellation|pembatalan"
             },
             "Research Survey": {
@@ -318,9 +318,14 @@ class AgreementExtractor:
 
     def extract_demand_data(self, text):
         demand_type_patterns = {
+            "Financial Help": {
+                "start": ["SECOND PARTY responsibilities to provide ", "PIHAK KEDUA berkewajiban untuk memberikan "],
+                "end": [" predetermined deadline", " waktu yang telah ditentukan"],
+                "pattern": r"fund|dana"
+            },
             "Financial Partner Statement": {
-                "start": ["SECOND PARTY entitled to use a ", "PIHAK KEDUA berhak menggunakan nama "],
-                "end": [" a financial partner", " a financial partner"],
+                "start": ["SECOND PARTY entitled to use ", "PIHAK KEDUA berhak menggunakan nama "],
+                "end": [" a financial partner", " financial partner"],
                 "pattern": r"financial|financial"
             },
             "Cooperation Tracking": {
@@ -344,6 +349,16 @@ class AgreementExtractor:
                 "end": [" before and after the event running", " sebelum dan sesudah acara berlangsung"],
                 "pattern": r"satisfaction|satisfaction"
             },
+            "Post Speaker Survey Form Filling": {
+                "start": ["SECOND PARTY is obligated to ", "PIHAK KEDUA berkewajiban mengisi "],
+                "end": [" before and after the event running", " sebelum dan sesudah acara berlangsung"],
+                "pattern": r"satisfaction|satisfaction"
+            },
+            "Regulation Compliance": {
+                "start": ["Normal Cancellation ", "Pembatalan secara normal "],
+                "end": [" is approved", " ini disetujui"],
+                "pattern": r"cancellation|pembatalan"
+            }
         }
 
         return self.extract_block_data_deal(text, demand_type_patterns)
