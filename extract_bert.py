@@ -298,9 +298,9 @@ class AgreementExtractor:
                 "pattern": r"fulfill SECOND PARTY Research Survey|melaksanakan survei riset PIHAK KEDUA"
             },
             "Ad-Libs": {
-                "start": ["FIRST PARTY responsibilities to conduct Ad-Libs of SECOND PARTY", "PIHAK PERTAMA bertanggung jawab untuk melaksanakan Ad-Libs PIHAK KEDUA"],
-                "end": ["SECOND PARTY responsibilities", "TANGGUNG JAWAB PIHAK KEDUA", "ARTICLE", "PASAL", "SECTION"],
-                "pattern": r"conduct Ad-Libs of SECOND PARTY|melaksanakan Ad-Libs PIHAK KEDUA"
+                "start": ["FIRST PARTY responsibilities to conduct ", "PIHAK PERTAMA berkewajiban untuk mengadakan "],
+                "end": [" held for 2 – 3 minutes", " selama 2 - 3 Menit"],
+                "pattern": r"Ad-Libs|Ad-Libs"
             },
             "Company Video Promotion": {
                 "start": ["FIRST PARTY responsibilities to play Company Video Promotion", "PIHAK PERTAMA bertanggung jawab untuk memutar Video Promosi Perusahaan PIHAK KEDUA"],
@@ -318,13 +318,32 @@ class AgreementExtractor:
 
     def extract_demand_data(self, text):
         demand_type_patterns = {
-            # Define demand type patterns here, similar to supply_type_patterns
-            # Example:
-            "Payment": {
-                "start": ["SECOND PARTY responsibilities to pay", "PIHAK KEDUA bertanggung jawab untuk membayar"],
-                "end": ["FIRST PARTY responsibilities", "TANGGUNG JAWAB PIHAK PERTAMA", "ARTICLE", "PASAL", "SECTION"],
-                "pattern": r"pay [\w\s]+ amount|membayar sejumlah"
-            }
+            "Financial Partner Statement": {
+                "start": ["SECOND PARTY entitled to use a ", "PIHAK KEDUA berhak menggunakan nama "],
+                "end": [" a financial partner", " a financial partner"],
+                "pattern": r"financial|financial"
+            },
+            "Cooperation Tracking": {
+                "start": ["SECOND PARTY responsibilities to Inform ", "PIHAK KEDUA berkewajiban untuk memberitahu "],
+                "end": [" cooperation with FIRST PARTY", " kerja sama dengan PIHAK PERTAMA"],
+                "pattern": r"development|perkembangan"
+            },
+            #Need to be Improved
+            "Speakers Dealing": {
+                "start": ["SECOND PARTY is obligated to become ", "PIHAK KEDUA berkewajiban untuk menjadi "],
+                "end": [" Get Rich Project", " Get Rich Project"],
+                "pattern": r"Speaker|pembicara"
+            },
+            "Session Agreement": {
+                "start": ["SECOND PARTY will allow ", "PIHAK KEDUA akan memperkenankan "],
+                "end": [" both parties", " kedua belah pihak"],
+                "pattern": r"event|acaranya"
+            },
+            "Satisfaction Survey Form Filling": {
+                "start": ["SECOND PARTY voluntarily help ", "PIHAK KEDUA dengan sukarela membantu "],
+                "end": [" before and after the event running", " sebelum dan sesudah acara berlangsung"],
+                "pattern": r"satisfaction|satisfaction"
+            },
         }
 
         return self.extract_block_data_deal(text, demand_type_patterns)
