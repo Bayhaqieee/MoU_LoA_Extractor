@@ -236,11 +236,13 @@ class AgreementExtractor:
                     for match in matches:
                         match = match.strip()
                         if re.search(pattern, match):
-                            merged_text = f"{start_marker}{match}{next((end_marker for end_marker in end_markers if re.search(re.escape(end_marker), text)), '')}"
+                            end_marker_found = next((end_marker for end_marker in end_markers if re.search(re.escape(end_marker), text)), '')
+                            merged_text = f"{start_marker}{match}{end_marker_found}"
                             blocks[type_name]['matches'].append(merged_text)
                             blocks[type_name]['detected'] = True
                             break
         return blocks
+
 
     def extract_supply_data(self, text):
         supply_type_patterns = {
@@ -350,7 +352,7 @@ class AgreementExtractor:
                 "pattern": r"satisfaction|satisfaction"
             },
             "Post Speaker Survey Form Filling": {
-                "start": ["SECOND PARTY is obligated to ", "PIHAK KEDUA berkewajiban mengisi "],
+                "start": ["SECOND PARTY is obligated to fill the ", "PIHAK KEDUA berkewajiban mengisi Survey "],
                 "end": [" before and after the event running", " sebelum dan sesudah acara berlangsung"],
                 "pattern": r"satisfaction|satisfaction"
             },
