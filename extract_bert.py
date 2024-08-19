@@ -326,9 +326,9 @@ class AgreementExtractor:
                 "pattern": r"fund|dana"
             },
             "Financial Partner Statement": {
-                "start": ["SECOND PARTY entitled to use ", "PIHAK KEDUA berhak menggunakan nama "],
-                "end": [" a financial partner", " financial partner"],
-                "pattern": r"financial|financial"
+                "start": ["SECOND PARTY entitled to ", "PIHAK KEDUA berhak menggunakan "],
+                "end": [" a financial partner", " sebagai financial partner"],
+                "pattern": r"name|nama"
             },
             "Cooperation Tracking": {
                 "start": ["SECOND PARTY responsibilities to Inform ", "PIHAK KEDUA berkewajiban untuk memberitahu "],
@@ -347,18 +347,18 @@ class AgreementExtractor:
                 "pattern": r"event|acaranya"
             },
             "Satisfaction Survey Form Filling": {
-                "start": ["SECOND PARTY voluntarily help ", "PIHAK KEDUA dengan sukarela membantu "],
+                "start": ["SECOND PARTY voluntarily ", "PIHAK KEDUA dengan sukarela "],
                 "end": [" before and after the event running", " sebelum dan sesudah acara berlangsung"],
                 "pattern": r"satisfaction|satisfaction"
             },
             "Post Speaker Survey Form Filling": {
-                "start": ["SECOND PARTY is obligated to fill the ", "PIHAK KEDUA berkewajiban mengisi Survey "],
-                "end": [" before and after the event running", " sebelum dan sesudah acara berlangsung"],
-                "pattern": r"satisfaction|satisfaction"
+                "start": ["SECOND PARTY is obligated to fill ", "PIHAK KEDUA berkewajiban mengisi Survey "],
+                "end": [" closing collaboration surveys", " survey kolaborasi penutupan"],
+                "pattern": r"Post|Pasca"
             },
             "Regulation Compliance": {
-                "start": ["Normal Cancellation ", "Pembatalan secara normal "],
-                "end": [" is approved", " ini disetujui"],
+                "start": ["Normal ", "Pembatalan "],
+                "end": [" approved", " disetujui"],
                 "pattern": r"cancellation|pembatalan"
             }
         }
